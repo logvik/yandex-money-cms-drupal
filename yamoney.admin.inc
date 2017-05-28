@@ -212,9 +212,8 @@ class Crypto {
 	public function encrypt($data)
 	{
 		$data = serialize($data);
-		$init_size = mcrypt_get_iv_size($this->cipher, $this->cipher_mode);
-		$init_vect = mcrypt_create_iv($init_size, MCRYPT_RAND);
-		$str = $this->randomString(strlen($this->key)).$init_vect.mcrypt_encrypt($this->cipher, $this->key, $data, $this->cipher_mode, $init_vect);
+		$iv = substr($this->key,0,16);
+		$str = $this->randomString(strlen($this->key)).openssl_encrypt($data, 'AES-128-CBC', $this->key, OPENSSL_RAW_DATA, $iv);
 		return base64_encode($str);
 	}
 
@@ -222,10 +221,8 @@ class Crypto {
 	{
 		$data = base64_decode($data);
 		$data = substr($data, strlen($this->key));
-		$init_size = mcrypt_get_iv_size($this->cipher, $this->cipher_mode);
-		$init_vect = substr($data, 0, $init_size);
-		$data = substr($data, $init_size);
-		$str = mcrypt_decrypt($this->cipher, $this->key, $data, $this->cipher_mode, $init_vect);
+		$iv = substr($this->key,0,16);
+		$str = openssl_decrypt($data, 'AES-128-CBC', $this->key, OPENSSL_RAW_DATA, $iv);
 		return unserialize($str);
 	}
 
